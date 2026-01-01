@@ -1,5 +1,4 @@
-// Simple global storage - will reset on function restart
-global.participants = global.participants || [];
+const sharedData = require('./shared-data');
 
 module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,7 +20,7 @@ module.exports = (req, res) => {
         });
       }
 
-      global.participants = newParticipants;
+      sharedData.setParticipants(newParticipants);
       console.log(`Participants saved by ${user}: ${newParticipants.length} entries`);
       
       return res.status(200).json({ 
@@ -41,7 +40,8 @@ module.exports = (req, res) => {
 
   if (req.method === 'GET') {
     try {
-      return res.status(200).json(global.participants);
+      const participants = sharedData.getParticipants();
+      return res.status(200).json(participants);
     } catch (error) {
       console.error('Error in participants.js GET:', error);
       return res.status(500).json({ 
