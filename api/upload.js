@@ -1,8 +1,6 @@
-// In-memory storage for participants data
-let participants = [];
+const storage = require('./storage');
 
 module.exports = (req, res) => {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -22,15 +20,13 @@ module.exports = (req, res) => {
         });
       }
 
-      // Force update for new Excel uploads
-      participants = newParticipants;
-      
-      console.log(`Upload by ${user} at ${timestamp}: ${participants.length} participants`);
+      storage.setParticipants(newParticipants);
+      console.log(`Excel uploaded by ${user} at ${timestamp}: ${newParticipants.length} participants`);
       
       return res.status(200).json({ 
         success: true, 
         message: 'Upload erfolgreich',
-        count: participants.length,
+        count: newParticipants.length,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
