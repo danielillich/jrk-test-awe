@@ -1,5 +1,4 @@
-// Simple global storage - will reset on function restart
-global.participants = global.participants || [];
+const sharedData = require('./shared-data');
 
 module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,7 +20,7 @@ module.exports = (req, res) => {
         });
       }
 
-      global.participants = newParticipants;
+      sharedData.setParticipants(newParticipants);
       console.log(`Excel uploaded by ${user} at ${timestamp}: ${newParticipants.length} participants`);
       
       return res.status(200).json({ 
