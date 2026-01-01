@@ -1,8 +1,6 @@
-// In-memory storage for participants data
-let participants = [];
+const storage = require('./storage');
 
 module.exports = (req, res) => {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -13,6 +11,7 @@ module.exports = (req, res) => {
 
   if (req.method === 'GET') {
     try {
+      const participants = storage.getParticipants();
       return res.status(200).json(participants);
     } catch (error) {
       console.error('Error in data.js:', error);
