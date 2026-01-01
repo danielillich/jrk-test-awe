@@ -1554,7 +1554,8 @@
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                                participants: this.participants,
+                                id: participantid,
+                                status: newStatus,
                                 user: currentUser
                             })
                         });
