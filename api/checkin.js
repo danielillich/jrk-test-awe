@@ -1,5 +1,6 @@
+const sharedData = require('./shared-data');
+
 module.exports = (req, res) => {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -10,46 +11,42 @@ module.exports = (req, res) => {
 
   if (req.method === 'POST') {
     try {
-      // Get ID from request body instead of URL
       const { id, status, user } = req.body;
       
-      if (!global.participants) {
-        global.participants = [];
-      }
-      
       const participantId = parseInt(id);
-      const participantIndex = global.participants.findIndex(p => p.id === participantId);
-      
-      if (participantIndex === -1) {
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Teilnehmer nicht gefunden' 
-        });
-      }
-
       const timestamp = new Date().toLocaleString('de-DE');
       
-      // Update participant status
-      global.participants[participantIndex].status = status;
-      global.participants[participantIndex].checkInTime = null;
-      global.participants[participantIndex].checkOutTime = null;
-      global.participants[participantIndex].ausflugsTime = null;
-      global.participants[participantIndex].krankTime = null;
+      const updates = {
+        status: status,
+        checkInTime: null,
+        checkOutTime: null,
+        ausflugsTime: null,
+        krankTime: null
+      };
       
       // Set appropriate timestamp
       switch(status) {
         case 'present':
-          global.participants[participantIndex].checkInTime = timestamp;
+          updates.checkInTime = timestamp;
           break;
         case 'absent':
-          global.participants[participantIndex].checkOutTime = timestamp;
+          updates.checkOutTime = timestamp;
           break;
         case 'ausflug':
-          global.participants[participantIndex].ausflugsTime = timestamp;
+          updates.ausflugsTime = timestamp;
           break;
         case 'krank':
-          global.participants[participantIndex].krankTime = timestamp;
+          updates.krankTime = timestamp;
           break;
+      }
+      
+      const updatedParticipant = sharedData.updateParticipant(participantId, updates);
+      
+      if (!updatedParticipant) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Teilnehmer nicht gefunden' 
+        });
       }
       
       console.log(`Status update by ${user}: Participant ${participantId} -> ${status}`);
@@ -57,7 +54,7 @@ module.exports = (req, res) => {
       return res.status(200).json({ 
         success: true, 
         message: 'Status erfolgreich aktualisiert',
-        participant: global.participants[participantIndex]
+        participant: updatedParticipant
       });
     } catch (error) {
       console.error('Error in checkin.js:', error);
