@@ -1,4 +1,5 @@
-const storage = require('./storage');
+// Simple global storage - will reset on function restart
+global.participants = global.participants || [];
 
 module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,7 +21,7 @@ module.exports = (req, res) => {
         });
       }
 
-      storage.setParticipants(newParticipants);
+      global.participants = newParticipants;
       console.log(`Participants saved by ${user}: ${newParticipants.length} entries`);
       
       return res.status(200).json({ 
@@ -40,8 +41,7 @@ module.exports = (req, res) => {
 
   if (req.method === 'GET') {
     try {
-      const participants = storage.getParticipants();
-      return res.status(200).json(participants);
+      return res.status(200).json(global.participants);
     } catch (error) {
       console.error('Error in participants.js GET:', error);
       return res.status(500).json({ 
