@@ -1,8 +1,6 @@
-// In-memory storage for participants data
-let participants = [];
+const storage = require('../storage');
 
 module.exports = (req, res) => {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -17,7 +15,7 @@ module.exports = (req, res) => {
       const { status, user } = req.body;
       
       const participantId = parseInt(id);
-      const participant = participants.find(p => p.id === participantId);
+      const participant = storage.getParticipantById(participantId);
       
       if (!participant) {
         return res.status(404).json({ 
@@ -26,36 +24,39 @@ module.exports = (req, res) => {
         });
       }
 
-      // Update participant status
-      participant.status = status;
       const timestamp = new Date().toLocaleString('de-DE');
       
-      // Clear all timestamps first
-      participant.checkInTime = null;
-      participant.checkOutTime = null;
-      participant.ausflugsTime = null;
-      participant.krankTime = null;
+      const updates = {
+        status: status,
+        checkInTime: null,
+        checkOutTime: null,
+        ausflugsTime: null,
+        krankTime: null
+      };
       
       // Set appropriate timestamp
       switch(status) {
         case 'present':
-          participant.checkInTime = timestamp;
+          updates.checkInTime = timestamp;
           break;
         case 'absent':
-          participant.checkOutTime = timestamp;
+          updates.checkOutTime = timestamp;
           break;
         case 'ausflug':
-          participant.ausflugsTime = timestamp;
+          updates.ausflugsTime = timestamp;
           break;
         case 'krank':
-          participant.krankTime = timestamp;
+          updates.krankTime = timestamp;
           break;
       }
+      
+      const updatedParticipant = storage.updateParticipant(participantId, updates);
+      console.log(`Status update by ${user}: Participant ${participantId} -> ${status}`);
       
       return res.status(200).json({ 
         success: true, 
         message: 'Status erfolgreich aktualisiert',
-        participant: participant
+        participant: updatedParticipant
       });
     } catch (error) {
       console.error('Error in checkin/[id].js:', error);
