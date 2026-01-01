@@ -1,9 +1,7 @@
-/ Simple global storage - will reset on function restart
-global.participants = global.participants || [];
-
 module.exports = (req, res) => {
+  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -11,21 +9,9 @@ module.exports = (req, res) => {
   }
 
   if (req.method === 'GET') {
-    try {
-      console.log('GET /api/data - returning participants:', global.participants.length);
-      return res.status(200).json(global.participants);
-    } catch (error) {
-      console.error('Error in data.js:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Fehler beim Laden der Daten',
-        error: error.message 
-      });
-    }
+    console.log('GET /api/data called');
+    return res.status(200).json([]);
   }
 
-  return res.status(405).json({ 
-    success: false, 
-    message: 'Method not allowed' 
-  });
+  return res.status(405).json({ message: 'Method not allowed' });
 };
