@@ -1,4 +1,5 @@
-const storage = require('../storage');
+// Simple global storage - will reset on function restart
+global.participants = global.participants || [];
 
 module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,9 +16,9 @@ module.exports = (req, res) => {
       const { status, user } = req.body;
       
       const participantId = parseInt(id);
-      const participant = storage.getParticipantById(participantId);
+      const participantIndex = global.participants.findIndex(p => p.id === participantId);
       
-      if (!participant) {
+      if (participantIndex === -1) {
         return res.status(404).json({ 
           success: false, 
           message: 'Teilnehmer nicht gefunden' 
@@ -26,37 +27,35 @@ module.exports = (req, res) => {
 
       const timestamp = new Date().toLocaleString('de-DE');
       
-      const updates = {
-        status: status,
-        checkInTime: null,
-        checkOutTime: null,
-        ausflugsTime: null,
-        krankTime: null
-      };
+      // Update participant status
+      global.participants[participantIndex].status = status;
+      global.participants[participantIndex].checkInTime = null;
+      global.participants[participantIndex].checkOutTime = null;
+      global.participants[participantIndex].ausflugsTime = null;
+      global.participants[participantIndex].krankTime = null;
       
       // Set appropriate timestamp
       switch(status) {
         case 'present':
-          updates.checkInTime = timestamp;
+          global.participants[participantIndex].checkInTime = timestamp;
           break;
         case 'absent':
-          updates.checkOutTime = timestamp;
+          global.participants[participantIndex].checkOutTime = timestamp;
           break;
         case 'ausflug':
-          updates.ausflugsTime = timestamp;
+          global.participants[participantIndex].ausflugsTime = timestamp;
           break;
         case 'krank':
-          updates.krankTime = timestamp;
+          global.participants[participantIndex].krankTime = timestamp;
           break;
       }
       
-      const updatedParticipant = storage.updateParticipant(participantId, updates);
       console.log(`Status update by ${user}: Participant ${participantId} -> ${status}`);
       
       return res.status(200).json({ 
         success: true, 
         message: 'Status erfolgreich aktualisiert',
-        participant: updatedParticipant
+        participant: global.participants[participantIndex]
       });
     } catch (error) {
       console.error('Error in checkin/[id].js:', error);
